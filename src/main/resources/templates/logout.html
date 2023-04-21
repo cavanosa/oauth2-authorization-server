@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Tutorial</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
+</head>
+<body>
+<div class="container">
+  <h2 class="text-center">¿Seguro que quieres cerrar sesión?</h2>
+  <form class="form-signin" method="post" th:action="@{/logout}">
+    <button class="btn btn-lg btn-outline-primary btn-block" type="submit">SÍ</button>
+    <button class="btn btn-lg btn-outline-secondary btn-block" href="https://oauthdebugger.com/debug">NO</button>
+  </form>
+</div>
+</body>
+</html>
