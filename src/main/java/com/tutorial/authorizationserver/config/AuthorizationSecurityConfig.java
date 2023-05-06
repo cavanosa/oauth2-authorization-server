@@ -89,6 +89,7 @@ public class AuthorizationSecurityConfig {
                 )
                 .formLogin(Customizer.withDefaults())
                 .apply(federatedIdentityConfigurer);
+        http.logout().logoutSuccessUrl("http://127.0.0.1:4200/logout");
         http.csrf().ignoringRequestMatchers("/auth/**", "/client/**");
         return http.build();
     }
