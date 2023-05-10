@@ -156,10 +156,10 @@ public class AuthorizationSecurityConfig {
         return new InMemoryOAuth2AuthorizationService();
     }
 
-    @Bean
+    /*@Bean
     public OAuth2AuthorizationConsentService authorizationConsentService() {
         return new InMemoryOAuth2AuthorizationConsentService();
-    }
+    }*/
 
     @Bean
     public AuthorizationServerSettings authorizationServerSettings(){
