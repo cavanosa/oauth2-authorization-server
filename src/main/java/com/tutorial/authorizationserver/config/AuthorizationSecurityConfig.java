@@ -4,6 +4,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.tutorial.authorizationserver.federated.FederatedIdentityAuthenticationSuccessHandler;
 import com.tutorial.authorizationserver.federated.FederatedIdentityConfigurer;
 import com.tutorial.authorizationserver.federated.UserRepositoryOAuth2UserHandler;
 import com.tutorial.authorizationserver.repository.GoogleUserRepository;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,8 +44,10 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -67,11 +71,15 @@ public class AuthorizationSecurityConfig {
     @Order(1)
     public SecurityFilterChain authSecurityFilterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults());
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/client/**"));
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .oidc(Customizer.withDefaults());	// Enable OpenID Connect 1.0
-        http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
-        http.apply(new FederatedIdentityConfigurer());
+        http.oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));
+        http.exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(
+                new LoginUrlAuthenticationEntryPoint("/login"),
+                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+        )).oauth2ResourceServer(resource -> resource.jwt(Customizer.withDefaults()));
         return http.build();
     }
 
@@ -79,6 +87,7 @@ public class AuthorizationSecurityConfig {
     @Order(2)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults());
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/client/**"));
         FederatedIdentityConfigurer federatedIdentityConfigurer = new FederatedIdentityConfigurer()
                 .oauth2UserHandler(new UserRepositoryOAuth2UserHandler(googleUserRepository));
         http
@@ -87,11 +96,18 @@ public class AuthorizationSecurityConfig {
                                 .requestMatchers("/auth/**", "/client/**", "/login").permitAll()
                                 .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults())
+                .formLogin(login -> login.loginPage("/login"))
+                .oauth2Login(login -> login.loginPage("/login")
+                        .successHandler(authenticationSuccessHandler())
+                )
                 .apply(federatedIdentityConfigurer);
-        http.logout().logoutSuccessUrl("http://127.0.0.1:4200/logout");
-        http.csrf().ignoringRequestMatchers("/auth/**", "/client/**");
+        http.logout(logout -> logout.logoutSuccessUrl("http://127.0.0.1:4200/logout"));
+
         return http.build();
+    }
+
+    private AuthenticationSuccessHandler authenticationSuccessHandler(){
+        return new FederatedIdentityAuthenticationSuccessHandler();
     }
 
 
