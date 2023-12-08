@@ -31,6 +31,8 @@ public class Client {
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> redirectUris;
     @ElementCollection(fetch = FetchType.EAGER)
+    private Set<String> postLogoutRedirectUris;
+    @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> scopes;
     private boolean requireProofKey;
 
@@ -42,6 +44,7 @@ public class Client {
                 .clientAuthenticationMethods(am -> am.addAll(client.getAuthenticationMethods()))
                 .authorizationGrantTypes(agt -> agt.addAll(client.getAuthorizationGrantTypes()))
                 .redirectUris(ru -> ru.addAll(client.getRedirectUris()))
+                .postLogoutRedirectUris(pl -> pl.addAll(client.getPostLogoutRedirectUris()))
                 .scopes(sc -> sc.addAll(client.getScopes()))
                 .clientSettings(ClientSettings
                         .builder()
