@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Two Factor</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
+</head>
+<body>
+<div class="container text-center">
+    <h3>Two Factor</h3>
+    <form class="form-signin" method="post" th:action="@{/twofactor}">
+        <input class="form-control" id="code" type="text" name="code" placeholder="introduzca el código" required>
+        <button type="submit" class="btn btn-outline-success w-100">Enviar</button>
+    </form>
+</div>
+</body>
+</html>

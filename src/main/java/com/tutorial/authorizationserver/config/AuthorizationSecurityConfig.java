@@ -9,6 +9,8 @@ import com.tutorial.authorizationserver.federated.FederatedIdentityConfigurer;
 import com.tutorial.authorizationserver.federated.UserRepositoryOAuth2UserHandler;
 import com.tutorial.authorizationserver.repository.GoogleUserRepository;
 import com.tutorial.authorizationserver.service.ClientService;
+import com.tutorial.authorizationserver.twofactor.TwoFactorHandler;
+import com.tutorial.authorizationserver.twofactor.TwoFactorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +48,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
@@ -88,7 +91,7 @@ public class AuthorizationSecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http, TwoFactorService twoFactorService) throws Exception {
         http.cors(Customizer.withDefaults());
         http.csrf(csrf -> csrf.ignoringRequestMatchers("/auth/**", "/client/**"));
         FederatedIdentityConfigurer federatedIdentityConfigurer = new FederatedIdentityConfigurer()
@@ -97,9 +100,13 @@ public class AuthorizationSecurityConfig {
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers("/auth/**", "/client/**", "/login").permitAll()
+                                .requestMatchers("/twofactor").hasAuthority("ROLE_TWO_F")
                                 .anyRequest().authenticated()
                 )
-                .formLogin(login -> login.loginPage("/login"))
+                .formLogin(login -> login.loginPage("/login")
+                        .successHandler(new TwoFactorHandler(twoFactorService))
+                        .failureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"))
+                )
                 .oauth2Login(login -> login.loginPage("/login")
                         .successHandler(authenticationSuccessHandler())
                 )
